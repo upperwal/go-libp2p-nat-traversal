@@ -18,7 +18,7 @@ import (
 func main() {
 	logging.SetLogLevel("nat-traversal", "DEBUG")
 
-	port := flag.Int("p", 3000, "port number")
+	port := flag.Int("p", 3001, "port number")
 	rp := flag.String("r", "", "remote peer id")
 	bootnode := flag.String("b", "", "bootnode multiaddr")
 	flag.Parse()
