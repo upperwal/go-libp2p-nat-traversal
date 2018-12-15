@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 
 	logging "github.com/ipfs/go-log"
 	libp2p "github.com/libp2p/go-libp2p"
@@ -19,7 +20,13 @@ func main() {
 
 	port := flag.Int("p", 3000, "port number")
 	rp := flag.String("r", "", "remote peer id")
+	bootnode := flag.String("b", "", "bootnode multiaddr")
 	flag.Parse()
+
+	if *bootnode == "" {
+		fmt.Println("Set a bootnode multiaddr")
+		os.Exit(1)
+	}
 
 	ctx := context.Background()
 
@@ -41,7 +48,7 @@ func main() {
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmSHQpWVzoGWiYRyBrikFp6tr8MAwm6RnUxPsu1NC2y8iJ")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
-	b.ConnectToServiceNodes(ctx, []string{"/ip4/127.0.0.1/tcp/3001/p2p/Qmc5mVjNN6n8DG4ky2wxQTY3tWks4Wufgqhz9PbevadKBW"})
+	b.ConnectToServiceNodes(ctx, []string{*bootnode})
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmVvYUj13isfoP4p9ppDZgboX9QwUDKkefP2nTGxVwfYBz")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
