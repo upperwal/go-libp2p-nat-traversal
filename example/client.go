@@ -35,6 +35,7 @@ func main() {
 	/* logging.SetLogLevel("swarm2", "DEBUG") */
 	logging.SetLogLevel("tcp-tpt", "DEBUG")
 	logging.SetLogLevel("reuseport-transport", "DEBUG")
+	logging.SetLogLevel("reuseport-imp", "DEBUG")
 
 	port := flag.Int("p", 0, "port number")
 	rp := flag.String("r", "", "remote peer id")
