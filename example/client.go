@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/libp2p/go-libp2p-swarm"
-
 	logging "github.com/ipfs/go-log"
 	libp2p "github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -79,7 +77,19 @@ func main() {
 		fmt.Println(err)
 		fmt.Println("Trying connection to: ", p)
 
-		pi, err := d.FindPeer(ctx, p)
+		cerr, err := b.ConnectThroughHolePunching(ctx, p)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		err = <-cerr
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("Connected to: ", p, "using hole punching")
+		}
+
+		/* pi, err := d.FindPeer(ctx, p)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -101,7 +111,7 @@ func main() {
 			}
 		} else {
 			fmt.Println("Connected to: ", p, "without Hole Punching")
-		}
+		} */
 
 	}
 
