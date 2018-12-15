@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	protocol "github.com/upperwal/go-libp2p-nat-traversal/protocol"
 
@@ -19,7 +18,6 @@ import (
 	inet "github.com/libp2p/go-libp2p-net"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
-	swarm "github.com/libp2p/go-libp2p-swarm"
 )
 
 var log = logging.Logger("nat-traversal")
@@ -230,26 +228,30 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 	log.Info("Got punch request to: ", pi)
 
 	cleanup := func() {
-		b.connMap[pi.ID] <- nil
 		close(b.connMap[pi.ID])
 		delete(b.connMap, pi.ID)
 	}
 
-	if err := (*b.host).Connect(context.Background(), pi); err != nil {
-		log.Error("Trial 1: ", err, "Second trial starting...")
-		(*b.host).Network().(*swarm.Swarm).Backoff().Clear(pi.ID)
-		time.Sleep(1 * time.Second)
+	cnt := 3
+	var err error
+	for i := 0; i < cnt; i++ {
 		err = (*b.host).Connect(context.Background(), pi)
-		if err != nil {
-			log.Error("Second trial failed.", err)
-			b.connMap[pi.ID] <- err
-		} else {
-			cleanup()
+		if err == nil {
+			log.Info(i+1, "trial succeeded.", err)
+			break
 		}
 
-	} else {
-		cleanup()
+		log.Error(i+1, "Failed")
 	}
+
+	if err != nil {
+		log.Error("All attempts Failed")
+		b.connMap[pi.ID] <- err
+	} else {
+		b.connMap[pi.ID] <- nil
+	}
+
+	cleanup()
 }
 
 func (b *NatTraversal) streamHandler(s inet.Stream) {
