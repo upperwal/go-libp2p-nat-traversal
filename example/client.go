@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/libp2p/go-libp2p-swarm"
+
 	logging "github.com/ipfs/go-log"
 	libp2p "github.com/libp2p/go-libp2p"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	peer "github.com/libp2p/go-libp2p-peer"
 	ma "github.com/multiformats/go-multiaddr"
+	mplex "github.com/whyrusleeping/go-smux-multiplex"
 
 	ntraversal "github.com/upperwal/go-libp2p-nat-traversal"
 )
@@ -32,7 +35,11 @@ func main() {
 
 	sourceMultiAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *port))
 
-	host, err := libp2p.New(ctx, libp2p.ListenAddrs(sourceMultiAddr))
+	host, err := libp2p.New(
+		ctx,
+		libp2p.ListenAddrs(sourceMultiAddr),
+		libp2p.Muxer("/mplex/6.7.0", mplex.DefaultTransport),
+	)
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +63,7 @@ func main() {
 
 		p, err := peer.IDB58Decode(string(*rp))
 		fmt.Println(err)
-		fmt.Println("Conn to: ", p)
+		fmt.Println("Trying connection to: ", p)
 
 		pi, err := d.FindPeer(ctx, p)
 		if err != nil {
@@ -64,6 +71,7 @@ func main() {
 		}
 		if err := host.Connect(ctx, pi); err != nil {
 			fmt.Println("Expecting: peers are behind non-full cone nat. Now trying hole punching")
+			host.Network().(*swarm.Swarm).Backoff().Clear(host.ID())
 
 			cerr, err := b.ConnectThroughHolePunching(ctx, p)
 			if err != nil {
