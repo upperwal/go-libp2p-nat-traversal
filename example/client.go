@@ -11,11 +11,11 @@ import (
 	peer "github.com/libp2p/go-libp2p-peer"
 	ma "github.com/multiformats/go-multiaddr"
 
-	bootstrap "github.com/upperwal/go-libp2p-bootstrap"
+	ntraversal "github.com/upperwal/go-libp2p-nat-traversal"
 )
 
 func main() {
-	logging.SetLogLevel("bootstrap", "DEBUG")
+	logging.SetLogLevel("nat-traversal", "DEBUG")
 
 	port := flag.Int("p", 3000, "port number")
 	rp := flag.String("r", "", "remote peer id")
@@ -34,16 +34,16 @@ func main() {
 
 	fmt.Println("This node: ", host.ID().Pretty(), " ", host.Addrs())
 
-	_, err = dht.New(ctx, host)
+	d, err := dht.New(ctx, host)
 	if err != nil {
 		panic(err)
 	}
 
-	b, _ := bootstrap.NewBootstrap(ctx, &host)
+	b, _ := ntraversal.NewNatTraversal(ctx, &host, d)
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmSHQpWVzoGWiYRyBrikFp6tr8MAwm6RnUxPsu1NC2y8iJ")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
-	b.ConnectToServiceNodes(ctx, []string{"/ip4/127.0.0.1/tcp/3001/p2p/QmQ3jP79BhHUyVmobyQtMEZmVSe7ceBHKs4HoCw8Ep7zzA"})
+	b.ConnectToServiceNodes(ctx, []string{"/ip4/127.0.0.1/tcp/3001/p2p/Qmc5mVjNN6n8DG4ky2wxQTY3tWks4Wufgqhz9PbevadKBW"})
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmVvYUj13isfoP4p9ppDZgboX9QwUDKkefP2nTGxVwfYBz")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */

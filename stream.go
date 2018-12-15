@@ -1,4 +1,4 @@
-package bootstrap
+package ntraversal
 
 import (
 	"bufio"
@@ -6,7 +6,7 @@ import (
 	ggio "github.com/gogo/protobuf/io"
 	proto "github.com/golang/protobuf/proto"
 	inet "github.com/libp2p/go-libp2p-net"
-	protocol "github.com/upperwal/go-libp2p-bootstrap/protocol"
+	protocol "github.com/upperwal/go-libp2p-nat-traversal/protocol"
 )
 
 type streamWrapper struct {

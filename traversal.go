@@ -1,4 +1,4 @@
-package bootstrap
+package ntraversal
 
 import (
 	"bufio"
@@ -6,24 +6,23 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/libp2p/go-libp2p-kad-dht"
-
-	protocol "github.com/upperwal/go-libp2p-bootstrap/protocol"
+	protocol "github.com/upperwal/go-libp2p-nat-traversal/protocol"
 
 	ggio "github.com/gogo/protobuf/io"
 
 	iaddr "github.com/ipfs/go-ipfs-addr"
 	logging "github.com/ipfs/go-log"
 	host "github.com/libp2p/go-libp2p-host"
+	dht "github.com/libp2p/go-libp2p-kad-dht"
 	inet "github.com/libp2p/go-libp2p-net"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
 )
 
-var log = logging.Logger("bootstrap")
+var log = logging.Logger("nat-traversal")
 
 const (
-	protocolBootstrap = "/bootstrap/1.0.0"
+	protocolBootstrap = "/ntraversal/1.0.0"
 )
 
 type StreamContainer struct {
@@ -36,8 +35,8 @@ type PacketWPeer struct {
 	packet *protocol.Protocol
 }
 
-// Bootstrap <TODO>
-type Bootstrap struct {
+// NatTraversal <TODO>
+type NatTraversal struct {
 	host           *host.Host
 	serviceNodes   []peer.ID
 	bootstrapPeers StreamContainer
@@ -47,26 +46,21 @@ type Bootstrap struct {
 	connMap        map[peer.ID]chan error
 }
 
-// NewBootstrap creates a new bootstraper node.
-func NewBootstrap(ctx context.Context, host *host.Host, opt ...Option) (*Bootstrap, error) {
+// NewNatTraversal creates a new bootstraper node.
+func NewNatTraversal(ctx context.Context, host *host.Host, dht *dht.IpfsDHT, opt ...Option) (*NatTraversal, error) {
 
 	sc := StreamContainer{
 		mux:      &sync.Mutex{},
 		peerList: make(map[peer.ID]*streamWrapper),
 	}
 
-	d, err := dht.New(ctx, *host)
-	if err != nil {
-		return nil, err
-	}
-
-	b := &Bootstrap{
+	b := &NatTraversal{
 		host:           host,
 		serviceNodes:   make([]peer.ID, 0),
 		bootstrapPeers: sc,
 		incoming:       make(chan PacketWPeer, 10),
 		outgoing:       make(chan PacketWPeer, 10),
-		dht:            d,
+		dht:            dht,
 		connMap:        make(map[peer.ID]chan error),
 	}
 
@@ -79,7 +73,7 @@ func NewBootstrap(ctx context.Context, host *host.Host, opt ...Option) (*Bootstr
 
 // ConnectToServiceNodes connects to bootstrap service nodes.
 // "/ip4/35.196.131.102/tcp/3001/p2p/QmQnAZsyiJSovuqg8zjP3nKdm6Pwb75Mpn8HnGyD5WYZ15"
-func (b *Bootstrap) ConnectToServiceNodes(ctx context.Context, listPeers []string) {
+func (b *NatTraversal) ConnectToServiceNodes(ctx context.Context, listPeers []string) {
 	for _, peerAddr := range listPeers {
 		addr, _ := iaddr.ParseString(peerAddr)
 		peerinfo, _ := pstore.InfoFromP2pAddr(addr.Multiaddr())
@@ -97,7 +91,7 @@ func (b *Bootstrap) ConnectToServiceNodes(ctx context.Context, listPeers []strin
 	}
 }
 
-func (b *Bootstrap) setStreamWrapper(s inet.Stream) {
+func (b *NatTraversal) setStreamWrapper(s inet.Stream) {
 
 	bw := bufio.NewWriter(s)
 
@@ -119,7 +113,7 @@ func (b *Bootstrap) setStreamWrapper(s inet.Stream) {
 }
 
 // ConnectThroughHolePunching uses a stun server to coordinate a hole punching.
-func (b *Bootstrap) ConnectThroughHolePunching(ctx context.Context, p peer.ID) (chan error, error) {
+func (b *NatTraversal) ConnectThroughHolePunching(ctx context.Context, p peer.ID) (chan error, error) {
 	if len(b.serviceNodes) == 0 {
 		log.Error("not connected to any service node")
 		return nil, fmt.Errorf("not connected to any service node")
@@ -142,7 +136,7 @@ func (b *Bootstrap) ConnectThroughHolePunching(ctx context.Context, p peer.ID) (
 	return res, nil
 }
 
-func (b *Bootstrap) messageHandler() {
+func (b *NatTraversal) messageHandler() {
 	for {
 		select {
 		case m := <-b.incoming:
@@ -160,7 +154,7 @@ func (b *Bootstrap) messageHandler() {
 	}
 }
 
-func (b *Bootstrap) handleConnectionRequest(m PacketWPeer) {
+func (b *NatTraversal) handleConnectionRequest(m PacketWPeer) {
 	id, _ := peer.IDHexDecode(string(m.packet.PeerID.Id))
 	log.Info("Got a connection request to: ", id)
 
@@ -183,7 +177,7 @@ func (b *Bootstrap) handleConnectionRequest(m PacketWPeer) {
 	b.sendPunchRequest(m.peer, piNonInit)
 }
 
-func (b *Bootstrap) findPeerInfo(p peer.ID) ([]byte, error) {
+func (b *NatTraversal) findPeerInfo(p peer.ID) ([]byte, error) {
 	pi, err := b.dht.FindPeer(context.Background(), p)
 	if err != nil {
 		log.Error(err)
@@ -198,7 +192,7 @@ func (b *Bootstrap) findPeerInfo(p peer.ID) ([]byte, error) {
 	return data, nil
 }
 
-func (b *Bootstrap) sendPunchRequest(to peer.ID, pi []byte) {
+func (b *NatTraversal) sendPunchRequest(to peer.ID, pi []byte) {
 	b.outgoing <- PacketWPeer{
 		peer: to,
 		packet: &protocol.Protocol{
@@ -210,9 +204,9 @@ func (b *Bootstrap) sendPunchRequest(to peer.ID, pi []byte) {
 	}
 }
 
-func (b *Bootstrap) sendErrMessage(err error) {}
+func (b *NatTraversal) sendErrMessage(err error) {}
 
-func (b *Bootstrap) handleHolePunchRequest(m PacketWPeer) {
+func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 	pi := pstore.PeerInfo{}
 	pi.UnmarshalJSON(m.packet.PeerInfo.Info)
 
@@ -228,7 +222,7 @@ func (b *Bootstrap) handleHolePunchRequest(m PacketWPeer) {
 	}
 }
 
-func (b *Bootstrap) streamHandler(s inet.Stream) {
+func (b *NatTraversal) streamHandler(s inet.Stream) {
 	log.Info("Connected to: ", s.Conn().RemotePeer())
 	b.setStreamWrapper(s)
 }

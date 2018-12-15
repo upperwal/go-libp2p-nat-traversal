@@ -10,7 +10,7 @@ import (
 	inet "github.com/libp2p/go-libp2p-net"
 	"github.com/multiformats/go-multiaddr"
 
-	bootstrap "github.com/upperwal/go-libp2p-bootstrap"
+	ntraversal "github.com/upperwal/go-libp2p-nat-traversal"
 )
 
 func handleStream(stream inet.Stream) {
@@ -18,7 +18,7 @@ func handleStream(stream inet.Stream) {
 }
 
 func main() {
-	logging.SetLogLevel("bootstrap", "DEBUG")
+	logging.SetLogLevel("nat-traversal", "DEBUG")
 
 	ctx := context.Background()
 
@@ -33,12 +33,12 @@ func main() {
 
 	fmt.Println("This node: ", host.ID().Pretty(), " ", host.Addrs())
 
-	_, err = dht.New(ctx, host)
+	d, err := dht.New(ctx, host)
 	if err != nil {
 		panic(err)
 	}
 
-	bootstrap.NewBootstrap(ctx, &host)
+	ntraversal.NewNatTraversal(ctx, &host, d)
 
 	select {}
 }
