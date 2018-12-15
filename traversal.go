@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	protocol "github.com/upperwal/go-libp2p-nat-traversal/protocol"
 
@@ -237,6 +238,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 	if err := (*b.host).Connect(context.Background(), pi); err != nil {
 		log.Error("Trial 1: ", err, "Second trial starting...")
 		(*b.host).Network().(*swarm.Swarm).Backoff().Clear(pi.ID)
+		time.Sleep(10 * time.Millisecond)
 		err = (*b.host).Connect(context.Background(), pi)
 		if err != nil {
 			log.Error("Second trial failed.", err)
