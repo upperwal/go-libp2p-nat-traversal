@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 
 	logging "github.com/ipfs/go-log"
@@ -20,11 +21,14 @@ func handleStream(stream inet.Stream) {
 func main() {
 	logging.SetLogLevel("nat-traversal", "DEBUG")
 
+	port := flag.Int("p", 3000, "port number")
+	flag.Parse()
+
 	ctx := context.Background()
 
 	// libp2p.New constructs a new libp2p Host.
 	// Other options can be added here.
-	sourceMultiAddr, _ := multiaddr.NewMultiaddr("/ip4/0.0.0.0/tcp/3001")
+	sourceMultiAddr, _ := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *port))
 
 	host, err := libp2p.New(ctx, libp2p.ListenAddrs(sourceMultiAddr))
 	if err != nil {
