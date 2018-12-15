@@ -162,20 +162,20 @@ func (b *NatTraversal) handleConnectionRequest(m PacketWPeer) {
 
 	//host := *b.host
 
-	piNonInit, err := b.findPeerInfo(id)
-	if err != nil {
-		log.Error(err)
-		b.sendErrMessage(err)
-		return
-	}
 	piInitiator, err := b.findPeerInfo(m.peer)
 	if err != nil {
 		log.Error(err)
 		b.sendErrMessage(err)
 		return
 	}
-
 	b.sendPunchRequest(id, piInitiator)
+
+	piNonInit, err := b.findPeerInfo(id)
+	if err != nil {
+		log.Error(err)
+		b.sendErrMessage(err)
+		return
+	}
 	b.sendPunchRequest(m.peer, piNonInit)
 }
 
