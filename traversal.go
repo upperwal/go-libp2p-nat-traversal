@@ -18,6 +18,7 @@ import (
 	inet "github.com/libp2p/go-libp2p-net"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
+	swarm "github.com/libp2p/go-libp2p-swarm"
 )
 
 var log = logging.Logger("nat-traversal")
@@ -235,6 +236,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 
 	if err := (*b.host).Connect(context.Background(), pi); err != nil {
 		log.Error("Trial 1: ", err, "Second trial starting...")
+		(*b.host).Network().(*swarm.Swarm).Backoff().Clear(pi.ID)
 		err = (*b.host).Connect(context.Background(), pi)
 		if err != nil {
 			log.Error("Second trial failed.", err)
