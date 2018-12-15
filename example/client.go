@@ -23,8 +23,6 @@ func main() {
 
 	ctx := context.Background()
 
-	// libp2p.New constructs a new libp2p Host.
-	// Other options can be added here.
 	sourceMultiAddr, _ := ma.NewMultiaddr(fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", *port))
 
 	host, err := libp2p.New(ctx, libp2p.ListenAddrs(sourceMultiAddr))

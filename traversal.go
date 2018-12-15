@@ -121,6 +121,7 @@ func (b *NatTraversal) ConnectThroughHolePunching(ctx context.Context, p peer.ID
 
 	log.Info("Conn to peer: ", p)
 
+	// TODO: timer logic: should have a timeout
 	res := make(chan error, 1)
 	b.connMap[p] = res
 
