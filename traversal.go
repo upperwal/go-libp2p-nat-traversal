@@ -197,6 +197,7 @@ func (b *NatTraversal) findPeerInfo(p peer.ID) ([]byte, error) {
 		}
 		piPublic.Addrs = append(piPublic.Addrs, addr)
 	}
+	piPublic.ID = pi.ID
 	data, err := piPublic.MarshalJSON()
 	if err != nil {
 		log.Error(err)
