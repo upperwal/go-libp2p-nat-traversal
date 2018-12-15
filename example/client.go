@@ -43,7 +43,7 @@ func main() {
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmSHQpWVzoGWiYRyBrikFp6tr8MAwm6RnUxPsu1NC2y8iJ")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
-	b.ConnectToServiceNodes(ctx, []string{"/ip4/127.0.0.1/tcp/3001/p2p/QmXDvZ7YsnjxuFZgCjEEwqVms5SiE2opG9vXzkQSid96yt"})
+	b.ConnectToServiceNodes(ctx, []string{"/ip4/127.0.0.1/tcp/3001/p2p/QmQ3jP79BhHUyVmobyQtMEZmVSe7ceBHKs4HoCw8Ep7zzA"})
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmVvYUj13isfoP4p9ppDZgboX9QwUDKkefP2nTGxVwfYBz")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
@@ -53,7 +53,17 @@ func main() {
 		fmt.Println(err)
 		fmt.Println("Conn to: ", p)
 
-		b.Connect(ctx, p)
+		cerr, err := b.ConnectThroughHolePunching(ctx, p)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		err = <-cerr
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("Connected to: ", p)
+		}
 	}
 
 	select {}

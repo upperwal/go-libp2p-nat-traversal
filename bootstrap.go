@@ -44,6 +44,7 @@ type Bootstrap struct {
 	incoming       chan PacketWPeer
 	outgoing       chan PacketWPeer
 	dht            *dht.IpfsDHT
+	connMap        map[peer.ID]chan error
 }
 
 // NewBootstrap creates a new bootstraper node.
@@ -66,6 +67,7 @@ func NewBootstrap(ctx context.Context, host *host.Host, opt ...Option) (*Bootstr
 		incoming:       make(chan PacketWPeer, 10),
 		outgoing:       make(chan PacketWPeer, 10),
 		dht:            d,
+		connMap:        make(map[peer.ID]chan error),
 	}
 
 	(*host).SetStreamHandler(protocolBootstrap, b.streamHandler)
@@ -116,13 +118,17 @@ func (b *Bootstrap) setStreamWrapper(s inet.Stream) {
 	go sm.readMsg(b.incoming)
 }
 
-func (b *Bootstrap) Connect(ctx context.Context, p peer.ID) error {
+// ConnectThroughHolePunching uses a stun server to coordinate a hole punching.
+func (b *Bootstrap) ConnectThroughHolePunching(ctx context.Context, p peer.ID) (chan error, error) {
 	if len(b.serviceNodes) == 0 {
 		log.Error("not connected to any service node")
-		return fmt.Errorf("not connected to any service node")
+		return nil, fmt.Errorf("not connected to any service node")
 	}
 
 	log.Info("Conn to peer: ", p)
+
+	res := make(chan error, 1)
+	b.connMap[p] = res
 
 	b.outgoing <- PacketWPeer{
 		peer: b.serviceNodes[0],
@@ -133,7 +139,7 @@ func (b *Bootstrap) Connect(ctx context.Context, p peer.ID) error {
 			},
 		},
 	}
-	return nil
+	return res, nil
 }
 
 func (b *Bootstrap) messageHandler() {
@@ -164,11 +170,13 @@ func (b *Bootstrap) handleConnectionRequest(m PacketWPeer) {
 	if err != nil {
 		log.Error(err)
 		b.sendErrMessage(err)
+		return
 	}
 	piInitiator, err := b.findPeerInfo(m.peer)
 	if err != nil {
 		log.Error(err)
 		b.sendErrMessage(err)
+		return
 	}
 
 	b.sendPunchRequest(id, piInitiator)
@@ -209,6 +217,15 @@ func (b *Bootstrap) handleHolePunchRequest(m PacketWPeer) {
 	pi.UnmarshalJSON(m.packet.PeerInfo.Info)
 
 	log.Info("Got punch request to: ", pi)
+
+	if err := (*b.host).Connect(context.Background(), pi); err != nil {
+		log.Error(err)
+		b.connMap[pi.ID] <- fmt.Errorf("could not open a connection")
+	} else {
+		b.connMap[pi.ID] <- nil
+		close(b.connMap[pi.ID])
+		delete(b.connMap, pi.ID)
+	}
 }
 
 func (b *Bootstrap) streamHandler(s inet.Stream) {
