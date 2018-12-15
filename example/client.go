@@ -76,7 +76,7 @@ func main() {
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmVvYUj13isfoP4p9ppDZgboX9QwUDKkefP2nTGxVwfYBz")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
 
-	time.Sleep(6 * time.Second)
+	time.Sleep(1 * time.Second)
 	if *rp != "" {
 
 		p, err := peer.IDB58Decode(string(*rp))

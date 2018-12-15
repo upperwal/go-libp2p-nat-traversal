@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	protocol "github.com/upperwal/go-libp2p-nat-traversal/protocol"
 
@@ -172,7 +171,7 @@ func (b *NatTraversal) handleConnectionRequest(m PacketWPeer) {
 	}
 	b.sendPunchRequest(id, piInitiator)
 
-	time.Sleep(time.Millisecond * 500)
+	//time.Sleep(time.Millisecond * 500)
 
 	piNonInit, err := b.findPeerInfo(id)
 	if err != nil {
@@ -239,9 +238,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 	cnt := 3
 	var err error
 	for i := 0; i < cnt; i++ {
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		err = (*b.host).Connect(ctx, pi)
-		cancel()
+		err = (*b.host).Connect(context.Background(), pi)
 		if err == nil {
 			log.Info(i+1, "trial succeeded.", err)
 			break
@@ -252,7 +249,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 
 		if strings.Contains(err.Error(), "no route to host") {
 			log.Info("Delay", err)
-			time.Sleep(time.Second * 10)
+			//time.Sleep(time.Second * 10)
 		}
 
 		log.Error(i+1, "Failed")
