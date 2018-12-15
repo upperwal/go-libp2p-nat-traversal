@@ -239,7 +239,9 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 	cnt := 3
 	var err error
 	for i := 0; i < cnt; i++ {
-		err = (*b.host).Connect(context.Background(), pi)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		err = (*b.host).Connect(ctx, pi)
+		cancel()
 		if err == nil {
 			log.Info(i+1, "trial succeeded.", err)
 			break
@@ -248,7 +250,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 
 		if strings.Contains(err.Error(), "no route to host") {
 			log.Info("Delay because of", err)
-			time.Sleep(time.Millisecond * 1500)
+			time.Sleep(time.Second * 1500)
 		}
 
 		log.Error(i+1, "Failed")
