@@ -149,7 +149,7 @@ func (b *NatTraversal) messageHandler() {
 			}
 		case o := <-b.outgoing:
 			log.Info("sending out: ", o.peer, o.packet)
-			b.bootstrapPeers.peerList[o.peer].writeMsg(o.packet)
+			go b.bootstrapPeers.peerList[o.peer].writeMsg(o.packet)
 		}
 	}
 }
