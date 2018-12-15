@@ -18,16 +18,29 @@ import (
 	ntraversal "github.com/upperwal/go-libp2p-nat-traversal"
 )
 
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	return ""
+}
+
+func (i *arrayFlags) Set(v string) error {
+	*i = append(*i, v)
+	return nil
+}
+
+var bootNodeFlags arrayFlags
+
 func main() {
 	logging.SetLogLevel("nat-traversal", "DEBUG")
 	logging.SetLogLevel("swarm2", "DEBUG")
 
 	port := flag.Int("p", 0, "port number")
 	rp := flag.String("r", "", "remote peer id")
-	bootnode := flag.String("b", "", "bootnode multiaddr")
+	flag.Var(&bootNodeFlags, "b", "bootnode multiaddr")
 	flag.Parse()
 
-	if *bootnode == "" {
+	if len(bootNodeFlags) == 0 {
 		fmt.Println("Set a bootnode multiaddr")
 		os.Exit(1)
 	}
@@ -56,7 +69,7 @@ func main() {
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmSHQpWVzoGWiYRyBrikFp6tr8MAwm6RnUxPsu1NC2y8iJ")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
-	b.ConnectToServiceNodes(ctx, []string{*bootnode})
+	b.ConnectToServiceNodes(ctx, bootNodeFlags)
 
 	/* ma, _ := ma.NewMultiaddr("/ip4/127.0.0.1/tcp/3000/p2p/QmVvYUj13isfoP4p9ppDZgboX9QwUDKkefP2nTGxVwfYBz")
 	pi, _ := pstore.InfoFromP2pAddr(ma) */
