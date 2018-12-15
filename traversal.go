@@ -172,6 +172,8 @@ func (b *NatTraversal) handleConnectionRequest(m PacketWPeer) {
 	}
 	b.sendPunchRequest(id, piInitiator)
 
+	time.Sleep(time.Millisecond * 500)
+
 	piNonInit, err := b.findPeerInfo(id)
 	if err != nil {
 		log.Error(err)
