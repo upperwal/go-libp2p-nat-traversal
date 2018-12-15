@@ -18,7 +18,7 @@ import (
 func main() {
 	logging.SetLogLevel("nat-traversal", "DEBUG")
 
-	port := flag.Int("p", 3001, "port number")
+	port := flag.Int("p", 0, "port number")
 	rp := flag.String("r", "", "remote peer id")
 	bootnode := flag.String("b", "", "bootnode multiaddr")
 	flag.Parse()
@@ -58,17 +58,28 @@ func main() {
 		fmt.Println(err)
 		fmt.Println("Conn to: ", p)
 
-		cerr, err := b.ConnectThroughHolePunching(ctx, p)
+		pi, err := d.FindPeer(ctx, p)
 		if err != nil {
 			fmt.Println(err)
+		}
+		if err := host.Connect(ctx, pi); err != nil {
+			fmt.Println("Expecting: peers are behind non-full cone nat. Now trying hole punching")
+
+			cerr, err := b.ConnectThroughHolePunching(ctx, p)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			err = <-cerr
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println("Connected to: ", p, "using hole punching")
+			}
+		} else {
+			fmt.Println("Connected to: ", p, "without Hole Punching")
 		}
 
-		err = <-cerr
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println("Connected to: ", p)
-		}
 	}
 
 	select {}
