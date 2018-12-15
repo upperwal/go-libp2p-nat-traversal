@@ -248,8 +248,10 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 		}
 		(*b.host).Network().(*swarm.Swarm).Backoff().Clear(pi.ID)
 
+		log.Error(err)
+
 		if strings.Contains(err.Error(), "no route to host") {
-			log.Info("Delay because of", err)
+			log.Info("Delay", err)
 			time.Sleep(time.Second * 5)
 		}
 
