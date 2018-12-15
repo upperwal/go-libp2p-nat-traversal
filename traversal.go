@@ -227,13 +227,24 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 
 	log.Info("Got punch request to: ", pi)
 
-	if err := (*b.host).Connect(context.Background(), pi); err != nil {
-		log.Error(err)
-		b.connMap[pi.ID] <- err
-	} else {
+	cleanup := func() {
 		b.connMap[pi.ID] <- nil
 		close(b.connMap[pi.ID])
 		delete(b.connMap, pi.ID)
+	}
+
+	if err := (*b.host).Connect(context.Background(), pi); err != nil {
+		log.Error("Trial 1: ", err, "Second trial starting...")
+		err = (*b.host).Connect(context.Background(), pi)
+		if err != nil {
+			log.Error("Second trial failed.", err)
+			b.connMap[pi.ID] <- err
+		} else {
+			cleanup()
+		}
+
+	} else {
+		cleanup()
 	}
 }
 
