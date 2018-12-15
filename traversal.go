@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 
 	protocol "github.com/upperwal/go-libp2p-nat-traversal/protocol"
@@ -184,7 +185,19 @@ func (b *NatTraversal) findPeerInfo(p peer.ID) ([]byte, error) {
 		log.Error(err)
 		return nil, fmt.Errorf("Could not find a peer")
 	}
-	data, err := pi.MarshalJSON()
+	piPublic := pstore.PeerInfo{}
+	for _, addr := range pi.Addrs {
+		// hacky way to remove all loopback and private addresses
+		// should be removed
+		if strings.Contains(addr.String(), "127.") ||
+			strings.Contains(addr.String(), "192.") ||
+			strings.Contains(addr.String(), "10.") ||
+			strings.Contains(addr.String(), "p2p-circuit") {
+			continue
+		}
+		piPublic.Addrs = append(piPublic.Addrs, addr)
+	}
+	data, err := piPublic.MarshalJSON()
 	if err != nil {
 		log.Error(err)
 		return nil, fmt.Errorf("cannot marshal peerinfo")
