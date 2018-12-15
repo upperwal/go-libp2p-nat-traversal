@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	protocol "github.com/upperwal/go-libp2p-nat-traversal/protocol"
 
@@ -18,6 +19,7 @@ import (
 	inet "github.com/libp2p/go-libp2p-net"
 	peer "github.com/libp2p/go-libp2p-peer"
 	pstore "github.com/libp2p/go-libp2p-peerstore"
+	swarm "github.com/libp2p/go-libp2p-swarm"
 )
 
 var log = logging.Logger("nat-traversal")
@@ -240,6 +242,8 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 			log.Info(i+1, "trial succeeded.", err)
 			break
 		}
+		(*b.host).Network().(*swarm.Swarm).Backoff().Clear(pi.ID)
+		time.Sleep(time.Millisecond * 500)
 
 		log.Error(i+1, "Failed")
 	}
