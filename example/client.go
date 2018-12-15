@@ -73,6 +73,7 @@ func main() {
 		if err := host.Connect(ctx, pi); err != nil {
 			fmt.Println("Expecting: peers are behind non-full cone nat. Now trying hole punching")
 			host.Network().(*swarm.Swarm).Backoff().Clear(pi.ID)
+			host.Peerstore().ClearAddrs(pi.ID)
 
 			cerr, err := b.ConnectThroughHolePunching(ctx, p)
 			if err != nil {
