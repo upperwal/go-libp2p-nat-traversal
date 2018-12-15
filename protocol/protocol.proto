@@ -1,0 +1,22 @@
+syntax = "proto3";
+package protocol;
+
+message Protocol {
+    enum Type {
+        CONNECTION_REQUEST = 0;
+        HOLE_PUNCH_REQUEST = 1;
+        PEER_UNKNOWN = 3;
+    }
+
+    message PeerID {
+        bytes id = 1;
+    }
+
+    message PeerInfo {
+        bytes info = 1;
+    }
+
+    Type type = 1;
+    PeerID peerID = 2;
+    PeerInfo peerInfo = 3;
+}
