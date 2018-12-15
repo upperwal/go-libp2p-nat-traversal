@@ -32,7 +32,7 @@ var bootNodeFlags arrayFlags
 
 func main() {
 	logging.SetLogLevel("nat-traversal", "DEBUG")
-	logging.SetLogLevel("swarm2", "DEBUG")
+	/* logging.SetLogLevel("swarm2", "DEBUG") */
 
 	port := flag.Int("p", 0, "port number")
 	rp := flag.String("r", "", "remote peer id")
