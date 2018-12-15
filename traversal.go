@@ -250,7 +250,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 
 		if strings.Contains(err.Error(), "no route to host") {
 			log.Info("Delay because of", err)
-			time.Sleep(time.Second * 1500)
+			time.Sleep(time.Second * 2)
 		}
 
 		log.Error(i+1, "Failed")
