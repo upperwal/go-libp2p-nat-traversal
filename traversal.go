@@ -245,7 +245,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 			break
 		}
 		(*b.host).Network().(*swarm.Swarm).Backoff().Clear(pi.ID)
-		time.Sleep(time.Millisecond * 500)
+		time.Sleep(time.Millisecond * 1500)
 
 		log.Error(i+1, "Failed")
 	}
