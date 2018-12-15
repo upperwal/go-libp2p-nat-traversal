@@ -215,7 +215,7 @@ func (b *NatTraversal) handleHolePunchRequest(m PacketWPeer) {
 
 	if err := (*b.host).Connect(context.Background(), pi); err != nil {
 		log.Error(err)
-		b.connMap[pi.ID] <- fmt.Errorf("could not open a connection")
+		b.connMap[pi.ID] <- err
 	} else {
 		b.connMap[pi.ID] <- nil
 		close(b.connMap[pi.ID])
